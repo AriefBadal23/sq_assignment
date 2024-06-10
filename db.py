@@ -99,6 +99,9 @@ def create_admin_account(
 
     # create admin as super
     if current_role == 1 and new_user_role == 2:
+        if new_user_role == 2 or new_user_role==3:
+            email=None
+        
         for statement in statements:
             connection.execute(statement)
 
