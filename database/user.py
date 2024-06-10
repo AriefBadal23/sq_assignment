@@ -49,6 +49,7 @@ password = hashlib.sha256("Admin_123?".encode()).hexdigest()
 CREATE_SUPER_ADMIN = [
     "PRAGMA foreign_keys = ON;",
     f"INSERT INTO user (assigned_role_id,username, email, mobile, password) VALUES (1,'super_admin','super@company.nl',0612341566,'{password}');",
+]
 
 
 CREATE_SUPER_ADMIN = [
