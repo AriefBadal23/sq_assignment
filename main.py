@@ -6,9 +6,10 @@ import db
 roles_menu = {
     "super_user": """
                         (1)uit, to Exit the program.
-                        (2)assword reset
-                        (3)how users and roles
+                        (2)Password reset
+                        (3)Show users and roles
                         (4)update consultant
+                        --------------------
                         (d)elete consultant
                         (r)eset consultant
                         (a)dd new admin
@@ -60,10 +61,10 @@ def main():
 
     while True:
         username = "super_admin"
-        password = input("Your password: ")
+        password = "Admin_123?"
 
         if username and password:
-            user_account = db.get_user(con, username, password)
+            user_account = db.authenticate_user(con, username, password)
             if user_account != None:
                 if user_account.role_id == 1:
                     print(roles_menu[user_account.get_role()] )
@@ -76,6 +77,14 @@ def main():
 
                     elif choice == "u":
                         pass
+                    elif choice == "2":
+                        user_to_reset_password = input("What is the ID of the user to reset the password from?")
+                        temp_password = input("Temporary password")
+                        if user_to_reset_password:
+                            db.update_password(con, user_to_reset_password, temp_password)
+                        else:
+                            print("Invalid input!")
+
                     elif choice == "a":
                         if user_account.role_id == 1:
                             name = input("Firstname of new admin: ")
@@ -103,9 +112,17 @@ def main():
                             )
 
                     elif choice == "d":
-                        print(db.get_all_users(con, user_account.role_id))
-                        user_id = input("Which user do you want to delete? ")
-                        db.delete_user(con, user_account.role_id, user_id)
+                        if choice:
+                            print(db.get_all_users(con, user_account.role_id))
+                            user_id = input("Which user do you want to delete? ")
+                            if user_id:
+                                db.delete_user(con, user_account.role_id, user_id)
+                            else:
+                                print("Invalid user. Please try again.")
+                        else:
+                            print("Invalid input. Please try again.")
+
+
                     elif choice == "c":
                         username = input("Username of new consultant: ")
                         email = input("Email of new consultant: ")
@@ -152,7 +169,7 @@ def main():
 
                             )
                     elif choice == "p":
-                        user = db.get_user(con,username,password)
+                        user = db.authenticate_user(con,username,password)
                         current_password = hashlib.sha256(input("Your password: ").encode()).hexdigest()
                         if user.password == current_password:
                             new_password = hashlib.sha256(input("New password: ").encode()).hexdigest()
@@ -161,9 +178,20 @@ def main():
                             print("Incorrect password. Try Again")
 
                     elif choice == "4":
-                        user = db.get_user(con,username,password)
-                        # 
-                        # db.update_user(con,user.id, update_user_account,)
+                        user = db.authenticate_user(con,username,password)
+                        db.get_all_users(con,user.id)
+                        account_id=input("UserID: ")
+                        updated_user = db.get_user_by_id(con,int(account_id))
+                        for key, value in updated_user:
+                            if key not in ["id","fullname"]:
+                                new_value = input(f"{key}: {value} ").strip()
+                                if new_value:
+                                    value=new_value
+                                    setattr(updated_user,key,new_value)
+                        db.update_user(con,user.id,updated_user.role_id, account_id, password,updated_user.username,updated_user.email,updated_user.mobile,
+                                    updated_user.fullname.split(" ")[0],updated_user.fullname.split(" ")[1],
+                                    updated_user.age,updated_user.gender,updated_user.weight)
+
 
 if "__main__" == __name__:
     main()
