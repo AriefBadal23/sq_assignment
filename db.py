@@ -243,3 +243,22 @@ def update_user(connection,current_id,role_id, account_id, new_password, usernam
         print("Account is succesfully updated!")
     else:
         print("You have no authorisation to update. Only SuperAdmin, Admins and Consultants.")
+
+def create_address(connection,streetname, house_number, zipcode, city):
+     cursor = connection.cursor()
+     cursor.execute(
+            f'INSERT INTO address (streetname, house_number, zipcode, city) VALUES ("{streetname}","{house_number}", "{zipcode}","{city}")'
+        )
+     connection.commit()
+    #  TODO: do this for the other ones as well.
+     return cursor.lastrowid
+
+    
+
+def create_member_address(connection,user_id, streetname, house_number, zipcode, city):
+    #  TODO:
+     address = create_address(connection, streetname, house_number, zipcode, city)
+     connection.execute(
+        f'INSERT INTO user_address (user_id, address_id) VALUES ("{user_id}", "{address}")')
+
+     connection.commit()

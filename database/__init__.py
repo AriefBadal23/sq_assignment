@@ -17,6 +17,7 @@ def initialize_database_tables():
     initialize_user_table(con) 
     initialize_user_role_table(con)
     initialize_address_table(con)
+    initialize_user_address_table(con)
     initialize_membership_table(con)
     initialize_user_profile_table(con)
     add_default_user_roles(con)

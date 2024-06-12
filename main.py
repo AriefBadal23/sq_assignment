@@ -55,18 +55,18 @@ def main():
                     ********************************************************
     """
     )
-    # username = input("Username:")
-    # password = input("Password:")
+    username = input("Username:")
+    password = input("Password:")
     count = 0
 
     while True:
-        username = "super_admin"
-        password = "Admin_123?"
+        # username = "super_admin"
+        # password = "Admin_123?"
 
         if username and password:
             user_account = db.authenticate_user(con, username, password)
             if user_account != None:
-                if user_account.role_id == 1:
+                if user_account.role_id in [1,2,3]:
                     print(roles_menu[user_account.get_role()] )
                     choice = input("Your choice: ")
                     if choice == "q":
@@ -99,7 +99,7 @@ def main():
                             email = input("Email of new admin: ")
                             password = input("Password of new admin: ")
                             age = 0
-                            db.create_admin_account(
+                            db.create_account(
                                 con,
                                 user_account.role_id,
                                 2,
@@ -131,7 +131,7 @@ def main():
                         lastname = input("Lastname of new consultant: ")
                         mobile = input("What is the mobile number? ")
 
-                        db.create_admin_account(
+                        db.create_account(
                                 con,
                                 user_account.role_id,
                                 3,
@@ -143,6 +143,7 @@ def main():
                                 lastname,
                             )
                     elif choice == "n":
+
                         username = input("Username of new member: ")
                         email = input("Email of new member: ")
                         password = hashlib.sha256(input("New password: ").encode()).hexdigest()
@@ -153,7 +154,7 @@ def main():
                         gender = input("What is the gender number? ")
                         weight = input("What is the weight number? ")
 
-                        db.create_admin_account(
+                        new_user = db.create_account(
                                 con,
                                 user_account.role_id,
                                 4,
@@ -168,6 +169,18 @@ def main():
                                 weight
 
                             )
+                        
+                        print("Please add address details below: ")
+                        streetname = input("Streetname; ")
+                        house = input("House number: ")
+                        zip_code = input("zipcode: ")
+                        city = input("city: ")
+
+                        db.create_member_address(con,new_user,streetname,house,zip_code,city)
+                        print("Member account is created succesfully")
+                        
+
+                        
                     elif choice == "p":
                         user = db.authenticate_user(con,username,password)
                         current_password = hashlib.sha256(input("Your password: ").encode()).hexdigest()
@@ -191,6 +204,7 @@ def main():
                         db.update_user(con,user.id,updated_user.role_id, account_id, password,updated_user.username,updated_user.email,updated_user.mobile,
                                     updated_user.fullname.split(" ")[0],updated_user.fullname.split(" ")[1],
                                     updated_user.age,updated_user.gender,updated_user.weight)
+                
 
 
 if "__main__" == __name__:

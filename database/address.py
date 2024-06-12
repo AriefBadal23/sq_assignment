@@ -20,7 +20,12 @@ CREATE_USER_ADDRESS_TABLE = """
 			"""
 
 
-def initialize_address_table(con):
+def initialize_user_address_table(con):
     cursor = con.cursor()
     cursor.execute(CREATE_USER_ADDRESS_TABLE)
+    con.commit()
+    
+def initialize_address_table(con):
+    cursor = con.cursor()
+    cursor.execute(CREATE_ADDRESS_TABLE)
     con.commit()
