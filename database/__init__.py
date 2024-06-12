@@ -1,5 +1,5 @@
 from .user import initialize_user_profile_table, initialize_user_role_table, initialize_user_table
-from .address import initialize_address_table
+from .address import initialize_address_table, initialize_user_address_table
 from .membership import initialize_membership_table
 from .role import intitialize_role_table,add_default_user_roles
 from .user import initialize_user_table, create_super_user, create_super_profile, create_super_role
