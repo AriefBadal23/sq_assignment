@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import sqlite3
 from user import Profile, User
@@ -76,7 +77,7 @@ def get_user_by_id(connection, id):
 
 
 
-def create_admin_account(
+def create_account(
     connection,
     current_role,
     new_user_role,
@@ -91,28 +92,26 @@ def create_admin_account(
     weight=None,
 ):
 
+    cursor = connection.cursor()
     statements = [
         "PRAGMA foreign_keys = ON;",
-        f'INSERT INTO user(assigned_role_id,username, email,mobile, password) VALUES({new_user_role},"{username}","{email}","{mobile}","{password}");',
+        f'INSERT INTO user(assigned_role_id,username,registration_date, email,mobile, password) VALUES({new_user_role},"{username}","{datetime.datetime.now()}","{email}","{mobile}","{password}");',
         f'INSERT INTO user_profile (name, lastname, age, gender, weight) VALUES ("{name}", "{lastname}", "{age}", "{gender}","{weight}");',
     ]
 
     # create admin as super
-    if current_role == 1 and new_user_role == 2:
-        if new_user_role == 2 or new_user_role==3:
-            email=None
-        
+    if current_role == 1 and new_user_role == 2:        
         for statement in statements:
-            connection.execute(statement)
+            cursor.execute(statement)
 
-        id, role = connection.execute(
+        id, role = cursor.execute(
             f'SELECT user_id, assigned_role_id FROM user WHERE username="{username}"'
         ).fetchone()
-        connection.execute(
+        cursor.execute(
             f'INSERT INTO user_role (user_id, role_id) VALUES ("{id}","{role}")'
         )
-        connection.commit()
-        return True
+        cursor.commit()
+        return cursor.lastrowid
 
     # create consultant as super or admin
     elif current_role == 1 or current_role == 2 and new_user_role == 3:
@@ -135,17 +134,24 @@ def create_admin_account(
             connection.execute(statement)
         connection.commit()
 
+
+        # TODO: make use of get_user() method
         id, role = connection.execute(
             f'SELECT user_id, assigned_role_id FROM user WHERE username="{username}"'
         ).fetchone()
+
+
         connection.execute(
             f'INSERT INTO user_role (user_id, role_id) VALUES ("{id}","{role}")'
+        )
+        connection.commit()
+        connection.execute(
+            f'INSERT INTO membership (member_user_id) VALUES ("{id}")'
         )
         connection.commit()
     else:
         # TODO: trow exception because you are not superadmin!
         return False
-
 
 
 
@@ -244,6 +250,8 @@ def update_user(connection,current_id,role_id, account_id, new_password, usernam
     else:
         print("You have no authorisation to update. Only SuperAdmin, Admins and Consultants.")
 
+
+    
 def create_address(connection,streetname, house_number, zipcode, city):
      cursor = connection.cursor()
      cursor.execute(

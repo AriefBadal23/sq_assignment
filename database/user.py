@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 
 SQL_CREATE_USER_TABLE = """
@@ -5,8 +6,9 @@ SQL_CREATE_USER_TABLE = """
                 user_id INTEGER PRIMARY KEY ,
                 assigned_role_id INTEGER,
                 username TEXT NOT NULL UNIQUE,
-                email TEXT NOT NULL UNIQUE,
-                mobile TEXT NOT NULL UNIQUE,
+                email TEXT UNIQUE,
+                registration_date TEXT NOT NULL,
+                mobile TEXT UNIQUE,
                 password TEXT NOT NULL,
                 FOREIGN KEY (assigned_role_id) REFERENCES role(role_id) ON DELETE CASCADE
                 );
@@ -46,15 +48,10 @@ CREATE_SUPER_PROFILE = [
 ]
 
 password = hashlib.sha256("Admin_123?".encode()).hexdigest()
+# ? registration_date in user_profile or user?
 CREATE_SUPER_ADMIN = [
     "PRAGMA foreign_keys = ON;",
-    f"INSERT INTO user (assigned_role_id,username, email, mobile, password) VALUES (1,'super_admin','super@company.nl',0612341566,'{password}');",
-]
-
-
-CREATE_SUPER_ADMIN = [
-    "PRAGMA foreign_keys = ON;",
-    "INSERT INTO user (assigned_role_id,username, email, mobile, password) VALUES (1,'super_admin','super@company.nl',0612341566,'Admin_123?');",
+    f"INSERT INTO user (assigned_role_id,username,registration_date, password) VALUES (1,'super_admin', '{datetime.datetime.now()}','{password}');",
 
 ]
 
