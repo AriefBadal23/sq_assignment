@@ -1,8 +1,29 @@
 from datetime import datetime
 from random import randint
 from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey, RSAPrivateKey
+
+
+def load_private_key():
+    try:
+        with open("keys/private.pem", "rb") as key_file:
+            return serialization.load_pem_private_key(
+                key_file.read(),
+                password=None,
+            )
+    except FileNotFoundError:
+        return None
+
+
+def load_public_key():
+    try:
+        with open("keys/public.pem", "rb") as key_file:
+            return serialization.load_pem_public_key(
+                key_file.read(),
+            )
+    except FileNotFoundError:
+        return None
 
 
 def rsa_encrypt(message: str, public_key: RSAPublicKey) -> bytes:

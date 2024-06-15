@@ -7,7 +7,7 @@ class User:
         SYSTEM_ADMIN = "system_admin"
         CONSULTANT = "consultant"
 
-    def __init__(self, id, username, password, role, reset_password):
+    def __init__(self, id, username, password, role, reset_password=False):
         self.id = id
         self.username = username
         self.password = password
