@@ -23,7 +23,6 @@ class MemberManager(BaseManager):
                 age INTEGER NOT NULL,
                 gender TEXT NOT NULL,
                 weight INTEGER NOT NULL,
-                address_id INTEGER NOT NULL UNIQUE,
                 email TEXT NOT NULL,
                 phone_number TEXT NOT NULL,
                 registration_date TEXT NOT NULL,
@@ -111,7 +110,7 @@ class MemberManager(BaseManager):
                 phone_number,
                 registration_date,
                 membership_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
         """
 
         try:

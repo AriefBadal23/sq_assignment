@@ -38,11 +38,11 @@ class AddressManager(BaseManager):
 
         return [Address(*address_data) for address_data in result]
 
-    def get_address(self, id: int) -> Address:
-        SQL_SELECT_ADDRESS = "SELECT * FROM addresses WHERE id = ?;"
+    def get_address(self, member_id: int) -> Address:
+        SQL_SELECT_ADDRESS = "SELECT * FROM addresses WHERE member_id = ?;"
         try:
             cursor = self.config.con.cursor()
-            cursor.execute(SQL_SELECT_ADDRESS, (id,))
+            cursor.execute(SQL_SELECT_ADDRESS, (member_id,))
             result = cursor.fetchone()
         finally:
             cursor.close()
@@ -50,13 +50,19 @@ class AddressManager(BaseManager):
         return Address(*result) if result is not None else None
 
     def create_address(
-        self, street_name: str, house_number: str, zip_code: str, city: str
+        self,
+        street_name: str,
+        house_number: str,
+        zip_code: str,
+        city: str,
+        member_id: int,
     ) -> Address:
-        SQL_CREATE_ADDRESS = "INSERT INTO addresses (street_name, house_number, zip_code, city) VALUES (?, ?, ?, ?);"
+        SQL_CREATE_ADDRESS = "INSERT INTO addresses (street_name, house_number, zip_code, city, member_id) VALUES (?, ?, ?, ?, ?);"
         try:
             cursor = self.config.con.cursor()
             cursor.execute(
-                SQL_CREATE_ADDRESS, (street_name, house_number, zip_code, city)
+                SQL_CREATE_ADDRESS,
+                (street_name, house_number, zip_code, city, member_id),
             )
             self.config.con.commit()
         finally:
@@ -71,13 +77,14 @@ class AddressManager(BaseManager):
         house_number: str,
         zip_code: str,
         city: str,
+        member_id: int,
     ):
-        SQL_UPDATE_ADDRESS = "UPDATE addresses SET street_name = ?, house_number = ?, zip_code = ?, city = ? WHERE id = ?;"
+        SQL_UPDATE_ADDRESS = "UPDATE addresses SET street_name = ?, house_number = ?, zip_code = ?, city = ? WHERE member_id = ?;"
         try:
             cursor = self.config.con.cursor()
             cursor.execute(
                 SQL_UPDATE_ADDRESS,
-                (street_name, house_number, zip_code, city, address.id),
+                (street_name, house_number, zip_code, city, member_id),
             )
             self.config.con.commit()
         finally:
