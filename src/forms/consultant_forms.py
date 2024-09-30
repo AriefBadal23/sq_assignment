@@ -1,12 +1,10 @@
 import tkinter as tk
-from tkinter import ttk
 from entities.user import User
 from tkinter import messagebox
 from managers.user_manager import UserManager
 from managers.profile_manager import ProfileManager
 from entities.user import User
 from validations import (
-    validate_server_input,
     validate_username,
     validate_password,
     validate_name,
@@ -14,7 +12,7 @@ from validations import (
 from forms.base_form import BaseForm
 
 
-class CreateUserForm(BaseForm):
+class CreateConsultantForm(BaseForm):
     def __init__(
         self,
         root,
@@ -24,12 +22,8 @@ class CreateUserForm(BaseForm):
         authorize,
         view_users_callback,
     ):
-        authorized_roles = (User.Role.SUPER_ADMIN,)
+        authorized_roles = (User.Role.SYSTEM_ADMIN,)
         super().__init__(root, config, logger, sender, authorize, authorized_roles)
-        self.choosable_roles = (
-            User.Role.SYSTEM_ADMIN.value,
-            User.Role.CONSULTANT.value,
-        )
         self.user_manager = UserManager(config)
         self.profile_manager = ProfileManager(config)
         self.view_users_callback = view_users_callback
@@ -40,7 +34,7 @@ class CreateUserForm(BaseForm):
 
         # Create a title label
         title_label = tk.Label(
-            self.root, text=f"Add new User", font=("Arial", 16, "bold")
+            self.root, text=f"Add new Consultant", font=("Arial", 16, "bold")
         )
         title_label.pack(pady=10)
 
@@ -76,13 +70,6 @@ class CreateUserForm(BaseForm):
         self.last_name_entry = tk.Entry(self.root, width=100)
         self.last_name_entry.pack(pady=5, padx=25)
 
-        # role
-        self.role_label = tk.Label(self.root, text="Role", font=("Arial", 12))
-        self.role_label.pack(pady=5, padx=25)
-        self.role_combobox = ttk.Combobox(self.root, values=self.choosable_roles)
-        self.role_combobox.set(self.choosable_roles[0])
-        self.role_combobox.pack(pady=5, padx=25)
-
         # submit button
         self.submit_button = tk.Button(self.root, text="Save", command=self.submit)
         self.submit_button.pack(pady=20)
@@ -100,7 +87,6 @@ class CreateUserForm(BaseForm):
         password = self.password_entry.get()
         first_name = self.first_name_entry.get()
         last_name = self.last_name_entry.get()
-        self.role = self.role_combobox.get()
 
         errors = []
         if not validate_username(username):
@@ -115,20 +101,13 @@ class CreateUserForm(BaseForm):
         if not validate_name(last_name):
             errors.append("Last name has to be between 2 and 20 characters.")
 
-        if not validate_server_input(self.role, self.choosable_roles):
-            errors.append("Role is not valid, incident will be logged.")
-            self.logger.log_activity(
-                self.sender,
-                "Server-side input is modified.",
-                f"Role was not valid: {self.role}",
-                True,
-            )
-
         if not self.user_manager.is_available_username(username):
             errors.append("Username is already taken.")
 
         if len(errors) == 0:
-            user = self.user_manager.create_user(username, password, self.role)
+            user = self.user_manager.create_user(
+                username, password, User.Role.CONSULTANT.value
+            )
             self.logger.log_activity(
                 self.sender,
                 "created user",
@@ -148,7 +127,7 @@ class CreateUserForm(BaseForm):
             messagebox.showinfo("Information", messages)
 
 
-class UpdateUserForm(BaseForm):
+class UpdateConsultantForm(BaseForm):
     def __init__(
         self,
         root,
@@ -159,12 +138,8 @@ class UpdateUserForm(BaseForm):
         view_users_callback,
         view_password_reset,
     ):
-        authorized_roles = (User.Role.SUPER_ADMIN,)
+        authorized_roles = (User.Role.SYSTEM_ADMIN,)
         super().__init__(root, config, logger, sender, authorize, authorized_roles)
-        self.choosable_roles = (
-            User.Role.SYSTEM_ADMIN.value,
-            User.Role.CONSULTANT.value,
-        )
         self.user_manager = UserManager(self.config)
         self.profile_manager = ProfileManager(self.config)
         self.view_users_callback = view_users_callback
@@ -172,15 +147,29 @@ class UpdateUserForm(BaseForm):
 
     def show_form(self, username):
         self.authorize(self.authorized_roles)
-        self.clear_screen()
 
         # Get user and profile
         updated_user = self.user_manager.get_user(username)
         updated_profile = self.profile_manager.get_profile(updated_user.id)
 
+        if updated_user.role != User.Role.CONSULTANT.value:
+            messagebox.showerror(
+                "Error",
+                "Only consultants can be updated using this form, incident logged.",
+            )
+            self.logger.log_activity(
+                self.sender,
+                "attempted to update a non-consultant user using the consultant form",
+                f"with username: {updated_user.username}",
+                True,
+            )
+            return self.view_users_callback()
+
+        self.clear_screen()
+
         # Create a title label
         title_label = tk.Label(
-            self.root, text=f"Update User", font=("Arial", 16, "bold")
+            self.root, text=f"Update Consultant", font=("Arial", 16, "bold")
         )
         title_label.pack(pady=10)
 
@@ -211,13 +200,6 @@ class UpdateUserForm(BaseForm):
         self.last_name_entry = tk.Entry(self.root, width=100)
         self.last_name_entry.insert(0, updated_profile.last_name)
         self.last_name_entry.pack(pady=5, padx=25)
-
-        # role
-        self.role_label = tk.Label(self.root, text="Role", font=("Arial", 12))
-        self.role_label.pack(pady=5, padx=25)
-        self.role_combobox = ttk.Combobox(self.root, values=self.choosable_roles)
-        self.role_combobox.set(updated_user.role)
-        self.role_combobox.pack(pady=5, padx=25)
 
         # reset password button
         self.reset_password_button = tk.Button(
@@ -252,7 +234,6 @@ class UpdateUserForm(BaseForm):
         current_username = self.current_username_entry.get()
         new_first_name = self.first_name_entry.get()
         new_last_name = self.last_name_entry.get()
-        role = self.role_combobox.get()
 
         try:
             user_to_update = self.user_manager.get_user(current_username)
@@ -264,18 +245,9 @@ class UpdateUserForm(BaseForm):
                 if not validate_name(new_last_name):
                     errors.append("Last name has to be between 2 and 20 characters.")
 
-                if not validate_server_input(role, self.choosable_roles):
-                    errors.append("Role is not valid, incident will be logged.")
-                    self.logger.log_activity(
-                        self.sender,
-                        "Server-side input is modified.",
-                        f"Role was not valid: {role}",
-                        True,
-                    )
-
                 if len(errors) == 0:
                     self.user_manager.update_user(
-                        user_to_update, current_username, role
+                        user_to_update, current_username, User.Role.CONSULTANT.value
                     )
                     updated_user = self.user_manager.get_user(current_username)
                     if updated_user is not None:
@@ -310,7 +282,6 @@ class UpdateUserForm(BaseForm):
 
     def delete(self):
         self.authorize(self.authorized_roles)
-
         current_username = self.current_username_entry.get()
         user = self.user_manager.get_user(current_username)
         self.user_manager.delete_user(user)

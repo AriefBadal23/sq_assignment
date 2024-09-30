@@ -90,6 +90,9 @@ class Backups:
                 with open("app.log", "w") as log_file:
                     log_file.write(f.read())
 
+            # Remove the temporary log file
+            os.remove("log_backup.log")
+
             print(f"Database restored successfully from {zip_file_name}")
         except Exception as e:
             print(f"Error restoring backup: {e}")

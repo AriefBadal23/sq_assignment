@@ -5,7 +5,6 @@ from entities.address import Address
 from tkinter import messagebox
 from managers.member_manager import MemberManager
 from managers.address_manager import AddressManager
-from config import Config
 from entities.user import User
 from validations import (
     validate_name,
@@ -18,17 +17,32 @@ from validations import (
     validate_house_number,
     validate_zip_code,
 )
-from forms.Form import BaseForm
+from forms.base_form import BaseForm
 
 
 class CreateMemberForm(BaseForm):
-    def __init__(self, root, config, logger, sender, view_members_callback):
-        super().__init__(root, config, logger, sender)
+    def __init__(
+        self,
+        root,
+        config,
+        logger,
+        sender,
+        authorize,
+        view_members_callback,
+    ):
+        authorized_roles = (
+            User.Role.SUPER_ADMIN,
+            User.Role.SYSTEM_ADMIN,
+            User.Role.CONSULTANT,
+        )
+        super().__init__(root, config, logger, sender, authorize, authorized_roles)
         self.member_manager = MemberManager(self.config)
         self.address_manager = AddressManager(self.config)
         self.view_members_callback = view_members_callback
 
     def show_form(self):
+        self.authorize(self.authorized_roles)
+
         self.clear_screen()
         # Create a title label
         title_label = tk.Label(
@@ -141,6 +155,8 @@ class CreateMemberForm(BaseForm):
         self.back_button.pack(pady=20)
 
     def submit(self):
+        self.authorize(self.authorized_roles)
+
         first_name = self.first_name_entry.get()
         last_name = self.last_name_entry.get()
         age = self.age_entry.get()
@@ -219,13 +235,28 @@ class CreateMemberForm(BaseForm):
 
 
 class UpdateMemberForm(BaseForm):
-    def __init__(self, root, config, logger, sender, view_members_callback):
-        super().__init__(root, config, logger, sender)
+    def __init__(
+        self,
+        root,
+        config,
+        logger,
+        sender,
+        authorize,
+        view_members_callback,
+    ):
+        authorized_roles = (
+            User.Role.SUPER_ADMIN,
+            User.Role.SYSTEM_ADMIN,
+            User.Role.CONSULTANT,
+        )
+        super().__init__(root, config, logger, sender, authorize, authorized_roles)
         self.member_manager = MemberManager(config)
         self.address_manager = AddressManager(config)
         self.view_members_callback = view_members_callback
 
     def show_form(self, member_id):
+        self.authorize(self.authorized_roles)
+
         self.clear_screen()
 
         title_label = tk.Label(
@@ -363,6 +394,8 @@ class UpdateMemberForm(BaseForm):
         self.back_button.pack(pady=5)
 
     def submit(self):
+        self.authorize(self.authorized_roles)
+
         updated_first_name = self.updated_first_name_entry.get()
         updated_last_name = self.updated_last_name_entry.get()
         updated_age = self.updated_age_entry.get()
@@ -465,6 +498,8 @@ class UpdateMemberForm(BaseForm):
             messagebox.showinfo("Information", messages)
 
     def delete(self):
+        self.authorize(self.authorized_roles)
+
         member = self.member_manager.get_member(self.member_to_update.id)
         self.member_manager.delete_member(member)
         messagebox.showinfo("Information", "Member has been deleted.")
